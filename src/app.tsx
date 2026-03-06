@@ -6,42 +6,45 @@ import Staff from "./pages/staff";
 import Assignments from "./pages/assignments";
 import Departments from "./pages/departments";
 import Shifts from "./pages/shifts";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
 // Simple auth check
 const isAuthenticated = () => !!localStorage.getItem("adminToken");
 
 const App: React.FC = () => {
   return (
-    <Router>
-      <Routes>
-        {/* Login page */}
-        <Route path="/" element={<Login />} />
+    <LanguageProvider>
+      <Router>
+        <Routes>
+          {/* Login page */}
+          <Route path="/" element={<Login />} />
 
-        {/* Dashboard protected */}
-        <Route
-          path="/dashboard"
-          element={isAuthenticated() ? <Dashboard /> : <Navigate to="/" />}
-        />
+          {/* Dashboard protected */}
+          <Route
+            path="/dashboard"
+            element={isAuthenticated() ? <Dashboard /> : <Navigate to="/" />}
+          />
 
-        {/* Staff Management protected */}
-        <Route
-          path="/staff"
-          element={isAuthenticated() ? <Staff /> : <Navigate to="/" />}
-        />
+          {/* Staff Management protected */}
+          <Route
+            path="/staff"
+            element={isAuthenticated() ? <Staff /> : <Navigate to="/" />}
+          />
 
-         <Route
-          path="/assignments"
-          element={isAuthenticated() ? <Assignments /> : <Navigate to="/" />}
-        />
+          <Route
+            path="/assignments"
+            element={isAuthenticated() ? <Assignments /> : <Navigate to="/" />}
+          />
 
-        <Route path="/shifts" element={<Shifts />} />
+          <Route path="/shifts" element={<Shifts />} />
 
-        <Route path="/departments" element={<Departments />} />
+          <Route path="/departments" element={<Departments />} />
 
-        {/* Fallback route */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </Router>
+          {/* Fallback route */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Router>
+    </LanguageProvider>
   );
 };
 

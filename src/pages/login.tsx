@@ -7,14 +7,19 @@ import {
 import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebaseConfig";
+import { useLanguage } from "../contexts/LanguageContext";
+import { translations } from "../translations";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { lang, setLang } = useLanguage();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [fadeIn, setFadeIn] = useState(false);
+
+  const t = translations[lang];
 
   useEffect(() => {
     setFadeIn(true);
@@ -25,7 +30,6 @@ const Login: React.FC = () => {
     setError("");
 
     try {
-      // 1️⃣ Authenticate user with Firebase Auth
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -33,14 +37,12 @@ const Login: React.FC = () => {
       );
 
       const user = userCredential.user;
-
-      // 2️⃣ Fetch user role from Firestore
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
       if (!userSnap.exists()) {
         await signOut(auth);
-        throw new Error("Access denied. User record not found.");
+        throw new Error(t.userNotFound);
       }
 
       const userData = userSnap.data();
@@ -48,31 +50,28 @@ const Login: React.FC = () => {
 
       if (userRole !== "admin") {
         await signOut(auth);
-        throw new Error("Access denied. Admins only.");
+        throw new Error(t.accessDenied);
       }
 
-      // 3️⃣ Store admin token
       localStorage.setItem("adminToken", user.uid);
       localStorage.setItem("adminRole", "admin");
-
-      // 4️⃣ Redirect to dashboard
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Login failed");
+      setError(err.message || t.errorDefault);
     }
   };
 
   const handleForgotPassword = async () => {
     if (!email) {
-      setError("Enter your email first");
+      setError(t.emailRequired);
       return;
     }
 
     try {
       await sendPasswordResetEmail(auth, email);
-      setError("Password reset email sent");
+      setError(t.resetSent);
     } catch (err: any) {
-      setError(err.message || "Failed to send reset email");
+      setError(err.message || t.resetFailed);
     }
   };
 
@@ -199,6 +198,36 @@ const Login: React.FC = () => {
           cursor: pointer;
         }
 
+        .lang-switcher {
+          display: flex;
+          justify-content: flex-end;
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+
+        .lang-btn {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: rgba(255, 255, 255, 0.7);
+          padding: 6px 12px;
+          border-radius: 8px;
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .lang-btn.active {
+          background: rgba(255, 255, 255, 0.25);
+          border-color: rgba(255, 255, 255, 0.5);
+          color: #fff;
+          font-weight: bold;
+        }
+
+        .lang-btn:hover:not(.active) {
+          background: rgba(255, 255, 255, 0.15);
+          color: #fff;
+        }
+
         .error-message {
           text-align: center;
           margin-bottom: 16px;
@@ -234,17 +263,34 @@ const Login: React.FC = () => {
           className={`login-form ${fadeIn ? "fade-in" : ""}`}
           onSubmit={handleLogin}
         >
+          <div className="lang-switcher">
+            <button
+              type="button"
+              className={`lang-btn ${lang === "en" ? "active" : ""}`}
+              onClick={() => setLang("en")}
+            >
+              English
+            </button>
+            <button
+              type="button"
+              className={`lang-btn ${lang === "zh" ? "active" : ""}`}
+              onClick={() => setLang("zh")}
+            >
+              中文
+            </button>
+          </div>
+
           <div className="logo">
             <img src="/assets/images/logo-1.png" alt="Duan Labels Logo" />
           </div>
 
-          <h2>Admin Login</h2>
+          <h2>{t.title}</h2>
 
           {error && <div className="error-message">{error}</div>}
 
           <input
             type="email"
-            placeholder="Email address"
+            placeholder={t.email}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -252,14 +298,14 @@ const Login: React.FC = () => {
 
           <input
             type="password"
-            placeholder="Password"
+            placeholder={t.password}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
 
           <button type="submit" className="login-btn">
-            Secure Login
+            {t.login}
           </button>
 
           <button
@@ -267,13 +313,13 @@ const Login: React.FC = () => {
             className="forgot-btn"
             onClick={handleForgotPassword}
           >
-            Forgot password?
+            {t.forgot}
           </button>
         </form>
       </div>
 
       <div className="footer">
-        © {new Date().getFullYear()} Duan Labels Ltd · Built by{" "}
+        © {new Date().getFullYear()} {t.footerPrefix}{" "}
         <strong>NexxaCraft</strong>
       </div>
     </div>

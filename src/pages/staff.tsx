@@ -11,6 +11,8 @@ import {
 import { db } from '../../firebaseConfig';
 import { useNavigate } from 'react-router-dom';
 import companyLogo from '../../assets/images/logo-2.png';
+import { useLanguage } from '../contexts/LanguageContext';
+import { translations } from '../translations';
 
 /* ================= TYPES ================= */
 interface Staff {
@@ -62,6 +64,8 @@ const departmentIcons: Record<string, string> = {
 /* ================= COMPONENT ================= */
 const AdminStaffScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { lang } = useLanguage();
+  const t = translations[lang];
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -146,29 +150,29 @@ const AdminStaffScreen: React.FC = () => {
     try {
       if (editingStaff) {
         await updateDoc(doc(db, 'staff', editingStaff.id), formData);
-        showToast('Staff updated successfully');
+        showToast(t.staffUpdated);
       } else {
         await addDoc(collection(db, 'staff'), {
           ...formData,
           joinedDate: new Date().toISOString().split('T')[0],
           createdAt: Timestamp.now()
         });
-        showToast('Staff added successfully');
+        showToast(t.staffAdded);
       }
       setShowModal(false);
     } catch {
-      showToast('Failed to save staff', 'error');
+      showToast(t.failedSave, 'error');
     }
     setSubmitting(false);
   };
 
   const removeStaff = async (s: Staff) => {
-    if (!window.confirm(`Are you sure you want to delete ${s.name}?`)) return;
+    if (!window.confirm(t.confirmDelete.replace('{{name}}', s.name))) return;
     try {
       await deleteDoc(doc(db, 'staff', s.id));
-      showToast('Staff removed successfully');
+      showToast(t.staffRemoved);
     } catch {
-      showToast('Failed to remove staff', 'error');
+      showToast(t.failedRemove, 'error');
     }
   };
 
@@ -205,7 +209,7 @@ const AdminStaffScreen: React.FC = () => {
     return (
       <div className="loading-container">
         <div className="loader"></div>
-        <p>Loading staff data...</p>
+        <p>{t.loadingStaff}</p>
       </div>
     );
   }
@@ -230,16 +234,16 @@ const AdminStaffScreen: React.FC = () => {
             </svg>
           </button>
           <div className="header-title">
-            <h1>Staff Management</h1>
-            <p>{filtered.length} staff members</p>
+            <h1>{t.staffManagementTitle}</h1>
+            <p>{t.staffMembersCount.replace('{{count}}', String(filtered.length))}</p>
           </div>
         </div>
         <div className="header-actions">
           <button className="view-toggle" onClick={() => setViewMode(viewMode === 'grouped' ? 'list' : 'grouped')}>
-            {viewMode === 'grouped' ? '📋 List View' : '📊 Group View'}
+            {viewMode === 'grouped' ? t.listView : t.groupView}
           </button>
           <button className="primary-btn" onClick={openAdd}>
-            <span>+</span> Add Staff
+            <span>+</span> {t.addStaff}
           </button>
         </div>
       </header>
@@ -250,28 +254,28 @@ const AdminStaffScreen: React.FC = () => {
           <div className="stat-icon">👥</div>
           <div className="stat-content">
             <h3>{stats.total}</h3>
-            <p>Total Staff</p>
+            <p>{t.totalStaffLabel}</p>
           </div>
         </div>
         <div className="stat-card" style={{ '--accent': '#10B981' } as React.CSSProperties}>
           <div className="stat-icon">✅</div>
           <div className="stat-content">
             <h3>{stats.active}</h3>
-            <p>Active</p>
+            <p>{t.active}</p>
           </div>
         </div>
         <div className="stat-card" style={{ '--accent': '#6B7280' } as React.CSSProperties}>
           <div className="stat-icon">⏸️</div>
           <div className="stat-content">
             <h3>{stats.inactive}</h3>
-            <p>Inactive</p>
+            <p>{t.inactive}</p>
           </div>
         </div>
         <div className="stat-card" style={{ '--accent': '#3B82F6' } as React.CSSProperties}>
           <div className="stat-icon">🏢</div>
           <div className="stat-content">
             <h3>{stats.departments}</h3>
-            <p>Departments</p>
+            <p>{t.departments}</p>
           </div>
         </div>
       </div>
@@ -284,7 +288,7 @@ const AdminStaffScreen: React.FC = () => {
             <path d="m21 21-4.35-4.35" />
           </svg>
           <input
-            placeholder="Search by name, email, or department..."
+            placeholder={t.searchPlaceholder}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
           />
@@ -296,9 +300,9 @@ const AdminStaffScreen: React.FC = () => {
               className={filter === f ? 'chip active' : 'chip'}
               onClick={() => setFilter(f as any)}
             >
-              {f === 'all' ? `All (${stats.total})` :
-                f === 'active' ? `Active (${stats.active})` :
-                  `Inactive (${stats.inactive})`}
+              {f === 'all' ? t.allStaff.replace('{{count}}', String(stats.total)) :
+                f === 'active' ? t.activeStaff.replace('{{count}}', String(stats.active)) :
+                  t.inactiveStaff.replace('{{count}}', String(stats.inactive))}
             </button>
           ))}
         </div>
@@ -312,8 +316,8 @@ const AdminStaffScreen: React.FC = () => {
               <div className="department-header">
                 <div className="department-info">
                   <span className="department-icon">{departmentIcons[dept] || departmentIcons.default}</span>
-                  <h2>{dept}</h2>
-                  <span className="count">{groupedByDepartment[dept].length} members</span>
+                  <h2>{dept === 'Unassigned' ? t.departmentUnassigned : dept}</h2>
+                  <span className="count">{t.membersCount.replace('{{count}}', String(groupedByDepartment[dept].length))}</span>
                 </div>
               </div>
               <div className="grid">
@@ -335,8 +339,8 @@ const AdminStaffScreen: React.FC = () => {
       {filtered.length === 0 && (
         <div className="empty-state">
           <div className="empty-icon">👥</div>
-          <h3>No staff members found</h3>
-          <p>Try adjusting your search or filters</p>
+          <h3>{t.noStaffFound}</h3>
+          <p>{t.tryAdjusting}</p>
         </div>
       )}
 
@@ -361,14 +365,14 @@ const AdminStaffScreen: React.FC = () => {
           <div className="modal glass" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <img src={companyLogo} className="logo" alt="Company logo" />
-              <h2>{editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'}</h2>
-              <p className="modal-subtitle">Fill in the details below</p>
+              <h2>{editingStaff ? t.editStaffMember : t.addNewStaffMember}</h2>
+              <p className="modal-subtitle">{t.fillDetails}</p>
             </div>
 
             <div className="modal-body" style={{ padding: '20px 30px' }}>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Staff ID *</label>
+                  <label>{t.staffIdLabel}</label>
                   <input
                     placeholder="e.g., EMP-001"
                     value={formData.staffId}
@@ -379,7 +383,7 @@ const AdminStaffScreen: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Full Name *</label>
+                  <label>{t.fullNameLabel}</label>
                   <input
                     placeholder="e.g., John Doe"
                     value={formData.name}
@@ -392,7 +396,7 @@ const AdminStaffScreen: React.FC = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Email Address *</label>
+                  <label>{t.emailAddressLabel}</label>
                   <input
                     type="email"
                     placeholder="email@company.com"
@@ -404,7 +408,7 @@ const AdminStaffScreen: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>Phone Number *</label>
+                  <label>{t.phoneNumberLabel}</label>
                   <input
                     type="tel"
                     placeholder="+1234567890"
@@ -417,7 +421,7 @@ const AdminStaffScreen: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Department *</label>
+                <label>{t.departmentLabel}</label>
                 <input
                   placeholder="e.g., Production, Printing, Quality Control"
                   value={formData.department}
@@ -428,7 +432,7 @@ const AdminStaffScreen: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Role *</label>
+                <label>{t.roleLabel}</label>
                 <div className="chip-grid">
                   {roles.map(r => (
                     <button
@@ -437,7 +441,7 @@ const AdminStaffScreen: React.FC = () => {
                       onClick={() => setFormData({ ...formData, role: r })}
                       type="button"
                     >
-                      {r.charAt(0).toUpperCase() + r.slice(1)}
+                      {t.roles?.[r as keyof typeof t.roles] || r.charAt(0).toUpperCase() + r.slice(1)}
                     </button>
                   ))}
                 </div>
@@ -445,7 +449,7 @@ const AdminStaffScreen: React.FC = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Status *</label>
+                  <label>{t.statusLabel}</label>
                   <div className="chip-grid">
                     {statuses.map(st => (
                       <button
@@ -454,7 +458,7 @@ const AdminStaffScreen: React.FC = () => {
                         onClick={() => setFormData({ ...formData, status: st })}
                         type="button"
                       >
-                        {st === 'active' ? '✅ Active' : '⏸️ Inactive'}
+                        {st === 'active' ? t.activeStatus : t.inactiveStatus}
                       </button>
                     ))}
                   </div>
@@ -464,18 +468,18 @@ const AdminStaffScreen: React.FC = () => {
 
             <div className="modal-footer">
               <button className="cancel-btn" onClick={() => setShowModal(false)} disabled={submitting}>
-                Cancel
+                {t.cancel}
               </button>
               <button className="save-btn" onClick={saveStaff} disabled={submitting}>
                 {submitting ? (
                   <>
                     <div className="btn-loader"></div>
-                    Saving...
+                    {t.saving}
                   </>
                 ) : (
                   <>
                     <span>✓</span>
-                    {editingStaff ? 'Update' : 'Add'} Staff
+                    {editingStaff ? t.update : t.add} {t.staffManagementTitle.split(' ')[0]}
                   </>
                 )}
               </button>
@@ -1303,6 +1307,9 @@ const StaffCard: React.FC<{
   onEdit: (staff: Staff) => void;
   onDelete: (staff: Staff) => void;
 }> = ({ staff, onEdit, onDelete }) => {
+  const { lang } = useLanguage();
+  const t = translations[lang];
+
   return (
     <div className="card">
       <div className="card-top">
@@ -1311,8 +1318,8 @@ const StaffCard: React.FC<{
           <small>{staff.department}</small>
         </div>
         <div>
-          <button onClick={() => onEdit(staff)} title="Edit">✏️</button>
-          <button onClick={() => onDelete(staff)} title="Delete">🗑️</button>
+          <button onClick={() => onEdit(staff)} title={t.update}>✏️</button>
+          <button onClick={() => onDelete(staff)} title={t.cancel}>🗑️</button>
         </div>
       </div>
 
@@ -1321,20 +1328,20 @@ const StaffCard: React.FC<{
           background: roleColors[staff.role] + '22',
           color: roleColors[staff.role]
         }}>
-          {staff.role}
+          {t.roles?.[staff.role as keyof typeof t.roles] || staff.role}
         </span>
         <span style={{
           background: statusColors[staff.status] + '22',
           color: statusColors[staff.status]
         }}>
-          {staff.status}
+          {staff.status === 'active' ? t.active : t.inactive}
         </span>
       </div>
 
       <p>🆔 {staff.staffId || 'N/A'}</p>
-      <p>� {staff.email}</p>
+      <p>📧 {staff.email}</p>
       <p>📱 {staff.phone}</p>
-      <p>📅 Joined: {staff.joinedDate}</p>
+      <p>📅 {t.joinedDate || 'Joined'}: {staff.joinedDate}</p>
     </div>
   );
 };

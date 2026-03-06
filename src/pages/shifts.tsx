@@ -17,6 +17,8 @@ import {
   orderBy
 } from 'firebase/firestore';
 import { db, auth } from '../../firebaseConfig';
+import { useLanguage } from '../contexts/LanguageContext';
+import { translations } from '../translations';
 
 // ============================================================================
 // TYPES
@@ -83,6 +85,8 @@ interface AssignmentFormData {
 // ============================================================================
 export default function ShiftScheduling() {
   const navigate = useNavigate();
+  const { lang } = useLanguage();
+  const t = translations[lang];
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [staffList, setStaffList] = useState<Staff[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -1735,20 +1739,20 @@ export default function ShiftScheduling() {
                 </button>
                 <div className="header-title">
                   <Clock size={36} />
-                  <h1>Shift Scheduling</h1>
+                  <h1>{t.shiftSchedulingTitle}</h1>
                 </div>
               </div>
               <div className="header-actions">
                 <button className="btn btn-secondary" onClick={exportSchedule}>
                   <Download size={18} />
-                  Export Schedule
+                  {t.exportSchedule}
                 </button>
                 <button className="btn btn-primary" onClick={() => {
                   resetShiftForm();
                   setShowCreateModal(true);
                 }}>
                   <Plus size={20} />
-                  New Shift
+                  {t.createNewShift}
                 </button>
               </div>
             </div>
@@ -1758,7 +1762,7 @@ export default function ShiftScheduling() {
               <input
                 type="text"
                 className="search-input"
-                placeholder="Search shifts, departments..."
+                placeholder={t.searchShiftsPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -1775,7 +1779,7 @@ export default function ShiftScheduling() {
                 <Activity size={24} color="#667eea" />
               </div>
               <div className="stat-value">{activeShifts.length}</div>
-              <div className="stat-label">Active Shifts</div>
+              <div className="stat-label">{t.activeShiftsLabel}</div>
             </div>
 
             <div className="stat-card" style={{ '--stat-color': '#10b981', '--stat-bg': '#d1fae5' } as any}>
@@ -1783,7 +1787,7 @@ export default function ShiftScheduling() {
                 <Users size={24} color="#10b981" />
               </div>
               <div className="stat-value">{totalStaffAssigned}</div>
-              <div className="stat-label">Staff Assigned</div>
+              <div className="stat-label">{t.staff} {t.assigned}</div>
             </div>
 
             <div className="stat-card" style={{ '--stat-color': '#f59e0b', '--stat-bg': '#fef3c7' } as any}>
@@ -1791,7 +1795,7 @@ export default function ShiftScheduling() {
                 <TrendingUp size={24} color="#f59e0b" />
               </div>
               <div className="stat-value">{utilizationRate}%</div>
-              <div className="stat-label">Utilization Rate</div>
+              <div className="stat-label">{t.utilizationRateLabel}</div>
             </div>
 
             <div className="stat-card" style={{ '--stat-color': '#8b5cf6', '--stat-bg': '#ede9fe' } as any}>
@@ -1799,7 +1803,7 @@ export default function ShiftScheduling() {
                 <Briefcase size={24} color="#8b5cf6" />
               </div>
               <div className="stat-value">{totalCapacity}</div>
-              <div className="stat-label">Total Capacity</div>
+              <div className="stat-label">{t.capacity}</div>
             </div>
           </div>
 
@@ -1808,22 +1812,22 @@ export default function ShiftScheduling() {
             <div className="calendar-header">
               <h2 className="calendar-title">
                 <Calendar size={24} style={{ display: 'inline', marginRight: 8 }} />
-                Week Overview
+                {t.weekOverview || 'Week Overview'}
               </h2>
               <div className="week-nav">
                 <button
                   className="btn btn-icon btn-ghost"
                   onClick={() => navigateWeek('prev')}
-                  aria-label="Previous week"
-                  title="Previous week"
+                  aria-label={t.prevWeek}
+                  title={t.prevWeek}
                 >
                   <ChevronLeft size={20} />
                 </button>
                 <button
                   className="btn btn-icon btn-ghost"
                   onClick={() => navigateWeek('next')}
-                  aria-label="Next week"
-                  title="Next week"
+                  aria-label={t.nextWeek}
+                  title={t.nextWeek}
                 >
                   <ChevronRight size={20} />
                 </button>
@@ -1844,12 +1848,12 @@ export default function ShiftScheduling() {
                     className={`day-card ${isToday ? 'today' : ''}`}
                   >
                     <div className="day-weekday">
-                      {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                      {date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { weekday: 'short' })}
                     </div>
                     <div className="day-date">{date.getDate()}</div>
                     {dateAssignments.length > 0 && (
                       <div className="day-assignments">
-                        {dateAssignments.length} assigned
+                        {dateAssignments.length} {t.assigned}
                       </div>
                     )}
                   </div>
@@ -1862,21 +1866,21 @@ export default function ShiftScheduling() {
           <div className="action-buttons">
             <button className="action-btn primary" onClick={() => setShowAssignModal(true)}>
               <Users size={20} />
-              Assign Staff to Shift
+              {t.assignStaffToShift}
             </button>
             <button className="action-btn" onClick={() => {
               resetShiftForm();
               setShowCreateModal(true);
             }}>
               <Plus size={20} />
-              Create New Shift
+              {t.createNewShift}
             </button>
           </div>
 
           {/* Shifts Section */}
           <div className="section-header">
             <h2 className="section-title">
-              Defined Shifts ({filteredShifts.length})
+              {t.availableShifts} ({filteredShifts.length})
             </h2>
           </div>
 
@@ -1884,7 +1888,7 @@ export default function ShiftScheduling() {
           {loading && (
             <div className="loading-container">
               <div className="loading-spinner"></div>
-              <div className="loading-text">Loading shifts...</div>
+              <div className="loading-text">{t.loadingSchedule}</div>
             </div>
           )}
 
@@ -1894,11 +1898,11 @@ export default function ShiftScheduling() {
               <div className="empty-icon">
                 <Clock size={40} />
               </div>
-              <div className="empty-title">No shifts found</div>
+              <div className="empty-title">{t.noStaffFound}</div>
               <div className="empty-description">
                 {searchQuery
-                  ? 'Try adjusting your search'
-                  : 'Get started by creating your first shift'}
+                  ? t.tryAdjusting
+                  : t.noShifts}
               </div>
               {!searchQuery && (
                 <button className="btn btn-primary" onClick={() => {
@@ -1906,7 +1910,7 @@ export default function ShiftScheduling() {
                   setShowCreateModal(true);
                 }}>
                   <Plus size={20} />
-                  Create First Shift
+                  {t.createShift}
                 </button>
               )}
             </div>
@@ -1954,8 +1958,8 @@ export default function ShiftScheduling() {
                         <button
                           className="icon-btn edit"
                           onClick={() => handleEditShift(shift)}
-                          title="Edit shift"
-                          aria-label="Edit shift"
+                          title={t.editShift}
+                          aria-label={t.editShift}
                         >
                           <Edit size={16} />
                         </button>
@@ -1965,8 +1969,8 @@ export default function ShiftScheduling() {
                             setShiftToDelete(shift.id);
                             setShowDeleteConfirm(true);
                           }}
-                          title="Delete shift"
-                          aria-label="Delete shift"
+                          title={t.deleteShift || 'Delete shift'}
+                          aria-label={t.deleteShift || 'Delete shift'}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -2025,11 +2029,11 @@ export default function ShiftScheduling() {
           {/* Attendance Register Section */}
           <div className="section-header" style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h2 className="section-title">Staff Attendance Master Roster</h2>
+              <h2 className="section-title">{t.staffAttendanceRoster}</h2>
               <p style={{ color: '#64748b', fontSize: '14px', marginTop: '4px' }}>
                 {showOnlyCurrentRoster
-                  ? `Summary of staff members assigned for the current week (${weekDates[0].toLocaleDateString()} - ${weekDates[6].toLocaleDateString()})`
-                  : 'Displaying all staff with upcoming shift assignments'}
+                  ? `${t.shiftRoster} (${weekDates[0].toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US')} - ${weekDates[6].toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US')})`
+                  : t.staffAttendanceRoster}
               </p>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -2047,7 +2051,7 @@ export default function ShiftScheduling() {
                   transition: 'all 0.2s'
                 }}
               >
-                This Week
+                {t.thisWeek || 'This Week'}
               </button>
               <button
                 onClick={() => setShowOnlyCurrentRoster(false)}
@@ -2063,7 +2067,7 @@ export default function ShiftScheduling() {
                   transition: 'all 0.2s'
                 }}
               >
-                All Upcoming
+                {t.allUpcoming || 'All Upcoming'}
               </button>
             </div>
           </div>
@@ -2195,7 +2199,7 @@ export default function ShiftScheduling() {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">
-                {selectedShift ? 'Edit Shift' : 'Create New Shift'}
+                {selectedShift ? t.editShift : t.createNewShift}
               </h2>
               <button
                 className="modal-close"
@@ -2213,7 +2217,7 @@ export default function ShiftScheduling() {
             <div className="modal-body">
               <div className="form-group">
                 <label className="form-label">
-                  Shift Name <span className="required">*</span>
+                  {t.shiftName} <span className="required">*</span>
                 </label>
                 <input
                   type="text"
@@ -2233,7 +2237,7 @@ export default function ShiftScheduling() {
               <div className="form-grid">
                 <div className="form-group">
                   <label className="form-label">
-                    Start Time <span className="required">*</span>
+                    {t.startTime} <span className="required">*</span>
                   </label>
                   <input
                     type="time"
@@ -2251,7 +2255,7 @@ export default function ShiftScheduling() {
 
                 <div className="form-group">
                   <label className="form-label">
-                    End Time <span className="required">*</span>
+                    {t.endTime} <span className="required">*</span>
                   </label>
                   <input
                     type="time"
@@ -2269,7 +2273,7 @@ export default function ShiftScheduling() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Shift Color</label>
+                <label className="form-label">{t.colorTheme}</label>
                 <div className="color-picker">
                   {colorPalette.map((color) => (
                     <div
@@ -2283,7 +2287,7 @@ export default function ShiftScheduling() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Description</label>
+                <label className="form-label">{t.description}</label>
                 <input
                   type="text"
                   className="form-input"
@@ -2340,7 +2344,7 @@ export default function ShiftScheduling() {
                   resetShiftForm();
                 }}
               >
-                Cancel
+                {t.cancel}
               </button>
               <button
                 className="btn btn-primary"
@@ -2350,12 +2354,12 @@ export default function ShiftScheduling() {
                 {saving ? (
                   <>
                     <div className="loading-spinner" style={{ width: 16, height: 16, borderWidth: 2 }}></div>
-                    Saving...
+                    {t.saving || 'Saving...'}
                   </>
                 ) : (
                   <>
                     <Save size={18} />
-                    {selectedShift ? 'Update Shift' : 'Create Shift'}
+                    {selectedShift ? t.updateShift : t.createShift}
                   </>
                 )}
               </button>
@@ -2372,7 +2376,7 @@ export default function ShiftScheduling() {
         }}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">Assign Staff to Shift</h2>
+              <h2 className="modal-title">{t.assignStaffToShift}</h2>
               <button
                 className="modal-close"
                 onClick={() => {
@@ -2398,7 +2402,7 @@ export default function ShiftScheduling() {
                   title="Select a shift to assign staff"
                   aria-label="Select shift"
                 >
-                  <option value="">Choose a shift...</option>
+                  <option value="">{t.selectShift}...</option>
                   {shifts.map((shift) => (
                     <option key={shift.id} value={shift.id}>
                       {shift.name} ({shift.startTime} - {shift.endTime})
@@ -2468,7 +2472,7 @@ export default function ShiftScheduling() {
 
               <div className="form-group">
                 <label className="form-label">
-                  Frequency <span className="required">*</span>
+                  {t.frequency || 'Frequency'} <span className="required">*</span>
                 </label>
                 <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
@@ -2479,7 +2483,7 @@ export default function ShiftScheduling() {
                       checked={assignmentFormData.frequency === 'single'}
                       onChange={(e) => setAssignmentFormData({ ...assignmentFormData, frequency: e.target.value as any })}
                     />
-                    <span style={{ fontSize: '14px', color: '#374151' }}>Single</span>
+                    <span style={{ fontSize: '14px', color: '#374151' }}>{t.single || 'Single'}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
@@ -2489,7 +2493,7 @@ export default function ShiftScheduling() {
                       checked={assignmentFormData.frequency === 'daily'}
                       onChange={(e) => setAssignmentFormData({ ...assignmentFormData, frequency: e.target.value as any })}
                     />
-                    <span style={{ fontSize: '14px', color: '#374151' }}>Daily</span>
+                    <span style={{ fontSize: '14px', color: '#374151' }}>{t.daily || 'Daily'}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
@@ -2499,7 +2503,7 @@ export default function ShiftScheduling() {
                       checked={assignmentFormData.frequency === 'weekly'}
                       onChange={(e) => setAssignmentFormData({ ...assignmentFormData, frequency: e.target.value as any })}
                     />
-                    <span style={{ fontSize: '14px', color: '#374151' }}>Weekly</span>
+                    <span style={{ fontSize: '14px', color: '#374151' }}>{t.weekly || 'Weekly'}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                     <input
@@ -2509,7 +2513,7 @@ export default function ShiftScheduling() {
                       checked={assignmentFormData.frequency === 'biweekly'}
                       onChange={(e) => setAssignmentFormData({ ...assignmentFormData, frequency: e.target.value as any })}
                     />
-                    <span style={{ fontSize: '14px', color: '#374151' }}>Bi-weekly</span>
+                    <span style={{ fontSize: '14px', color: '#374151' }}>{t.biweekly || 'Bi-weekly'}</span>
                   </label>
                 </div>
               </div>
@@ -2517,7 +2521,7 @@ export default function ShiftScheduling() {
               <div className="form-grid">
                 <div className="form-group">
                   <label className="form-label">
-                    Date <span className="required">*</span>
+                    {t.date} <span className="required">*</span>
                   </label>
                   <input
                     type="date"
@@ -2536,7 +2540,7 @@ export default function ShiftScheduling() {
                 {assignmentFormData.frequency !== 'single' && (
                   <div className="form-group fade-in">
                     <label className="form-label">
-                      End Date <span className="required">*</span>
+                      {t.endDate || 'End Date'} <span className="required">*</span>
                     </label>
                     <input
                       type="date"
@@ -2577,7 +2581,7 @@ export default function ShiftScheduling() {
                   resetAssignmentForm();
                 }}
               >
-                Cancel
+                {t.cancel}
               </button>
               <button
                 className="btn btn-primary"
@@ -2587,12 +2591,12 @@ export default function ShiftScheduling() {
                 {saving ? (
                   <>
                     <div className="loading-spinner" style={{ width: 16, height: 16, borderWidth: 2 }}></div>
-                    Assigning...
+                    {t.assigning || 'Assigning...'}
                   </>
                 ) : (
                   <>
                     <CheckCircle size={18} />
-                    Assign Staff
+                    {t.assignStaff}
                   </>
                 )}
               </button>
@@ -2611,9 +2615,9 @@ export default function ShiftScheduling() {
             <div className="confirm-icon">
               <AlertCircle size={28} />
             </div>
-            <h3 className="confirm-title">Delete Shift?</h3>
+            <h3 className="confirm-title">{t.deleteShift}?</h3>
             <p className="confirm-message">
-              Are you sure you want to delete this shift? This action cannot be undone and will remove all associated assignments.
+              {t.deleteConfirmMessage}
             </p>
             <div className="confirm-actions">
               <button
@@ -2623,14 +2627,14 @@ export default function ShiftScheduling() {
                   setShiftToDelete(null);
                 }}
               >
-                Cancel
+                {t.cancel}
               </button>
               <button
                 className="btn btn-danger"
                 onClick={handleDeleteShift}
               >
                 <Trash2 size={18} />
-                Delete
+                {t.delete}
               </button>
             </div>
           </div>
@@ -2647,9 +2651,9 @@ export default function ShiftScheduling() {
             <div className="confirm-icon" style={{ background: '#fee2e2', color: '#ef4444' }}>
               <AlertCircle size={28} />
             </div>
-            <h3 className="confirm-title">Delete Assignment?</h3>
+            <h3 className="confirm-title">{t.deleteAssignment}?</h3>
             <p className="confirm-message">
-              Are you sure you want to delete this staff assignment? This will remove the staff member from this specific shift on this date.
+              {t.deleteConfirmMessage}
             </p>
             <div className="confirm-actions">
               <button
@@ -2659,14 +2663,14 @@ export default function ShiftScheduling() {
                   setAssignmentToDelete(null);
                 }}
               >
-                Cancel
+                {t.cancel}
               </button>
               <button
                 className="btn btn-danger"
                 onClick={handleDeleteAssignment}
               >
                 <Trash2 size={18} />
-                Delete
+                {t.delete}
               </button>
             </div>
           </div>
@@ -2681,7 +2685,7 @@ export default function ShiftScheduling() {
         }}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2 className="modal-title">Edit Assignment</h2>
+              <h2 className="modal-title">{t.editAssignment}</h2>
               <button
                 className="modal-close"
                 onClick={() => {
@@ -2696,7 +2700,7 @@ export default function ShiftScheduling() {
             <div className="modal-body">
               <div className="form-group">
                 <label className="form-label">
-                  Staff Member <span className="required">*</span>
+                  {t.staffMember} <span className="required">*</span>
                 </label>
                 <select
                   className="form-input"
@@ -2711,7 +2715,7 @@ export default function ShiftScheduling() {
                     });
                   }}
                 >
-                  <option value="">Choose staff member...</option>
+                  <option value="">{t.selectStaffMember || t.selectStaff || 'Choose staff member...'}</option>
                   {staffList.map((staff) => (
                     <option key={staff.id} value={staff.id}>
                       {staff.name} {staff.department ? `(${staff.department})` : ''}
@@ -2721,7 +2725,7 @@ export default function ShiftScheduling() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Date</label>
+                <label className="form-label">{t.date}</label>
                 <input
                   type="date"
                   className="form-input"
@@ -2731,20 +2735,20 @@ export default function ShiftScheduling() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Status</label>
+                <label className="form-label">{t.status}</label>
                 <select
                   className="form-input"
                   value={editingAssignment.status}
                   onChange={(e) => setEditingAssignment({ ...editingAssignment, status: e.target.value as any })}
                 >
-                  <option value="scheduled">Scheduled</option>
-                  <option value="completed">Completed</option>
-                  <option value="absent">Absent</option>
+                  <option value="scheduled">{t.scheduled || 'Scheduled'}</option>
+                  <option value="completed">{t.completed || 'Completed'}</option>
+                  <option value="absent">{t.absent || 'Absent'}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Notes</label>
+                <label className="form-label">{t.notes || t.additionalNotes}</label>
                 <input
                   type="text"
                   className="form-input"
@@ -2762,55 +2766,20 @@ export default function ShiftScheduling() {
                   setEditingAssignment(null);
                 }}
               >
-                Cancel
+                {t.cancel}
               </button>
               <button
                 className="btn btn-primary"
                 onClick={handleUpdateAssignment}
                 disabled={saving}
               >
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? (t.saving || 'Saving...') : (t.saveChanges || 'Save Changes')}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete Assignment Confirmation Dialog */}
-      {showAssignmentDeleteConfirm && (
-        <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => {
-          setShowAssignmentDeleteConfirm(false);
-          setAssignmentToDelete(null);
-        }}>
-          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="confirm-icon">
-              <AlertCircle size={28} />
-            </div>
-            <h3 className="confirm-title">Delete Assignment?</h3>
-            <p className="confirm-message">
-              Are you sure you want to delete this specific shift assignment? This action cannot be undone.
-            </p>
-            <div className="confirm-actions">
-              <button
-                className="btn btn-ghost"
-                onClick={() => {
-                  setShowAssignmentDeleteConfirm(false);
-                  setAssignmentToDelete(null);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={handleDeleteAssignment}
-              >
-                <Trash2 size={18} />
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {/* Staff Attendance Modal */}
       {
         showAttendanceModal && selectedStaffForAttendance && (
@@ -2821,7 +2790,7 @@ export default function ShiftScheduling() {
             <div className="modal" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
               <div className="modal-header" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
                 <div>
-                  <h2 className="modal-title" style={{ color: 'white' }}>Attendance Register</h2>
+                  <h2 className="modal-title" style={{ color: 'white' }}>{t.attendanceRegister}</h2>
                   <p style={{ fontSize: '14px', opacity: 0.9 }}>{selectedStaffForAttendance.name} • {selectedStaffForAttendance.staffId}</p>
                 </div>
                 <button
@@ -2839,7 +2808,7 @@ export default function ShiftScheduling() {
               <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto', padding: '0' }}>
                 <div style={{ padding: '20px 32px', borderBottom: '1px solid #f1f5f9', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {showOnlyCurrentWeek ? 'Assignments for This Week' : 'All Upcoming Assignments'}
+                    {showOnlyCurrentWeek ? t.assignmentsThisWeek : t.allUpcomingAssignments}
                   </p>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button
@@ -2855,7 +2824,7 @@ export default function ShiftScheduling() {
                         cursor: 'pointer'
                       }}
                     >
-                      This Week
+                      {t.thisWeek}
                     </button>
                     <button
                       onClick={() => setShowOnlyCurrentWeek(false)}
@@ -2870,7 +2839,7 @@ export default function ShiftScheduling() {
                         cursor: 'pointer'
                       }}
                     >
-                      All Upcoming
+                      {t.allUpcoming}
                     </button>
                   </div>
                 </div>
@@ -2893,7 +2862,7 @@ export default function ShiftScheduling() {
                   if (staffAssignments.length === 0) {
                     return (
                       <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
-                        No shifts assigned for this week.
+                        {t.noAssignments}
                       </div>
                     );
                   }
@@ -2990,7 +2959,7 @@ export default function ShiftScheduling() {
                     setSelectedStaffForAttendance(null);
                   }}
                 >
-                  Close Register
+                  {t.closeRegister || 'Close Register'}
                 </button>
               </div>
             </div>

@@ -10,6 +10,8 @@ import {
   updateDoc, query, orderBy, Timestamp
 } from 'firebase/firestore';
 import { db, auth } from '../../firebaseConfig';
+import { useLanguage } from '../contexts/LanguageContext';
+import { translations } from '../translations';
 
 interface Job {
   id: string;
@@ -48,6 +50,8 @@ interface FormData {
 
 export default function JobManagement() {
   const navigate = useNavigate();
+  const { language } = useLanguage();
+  const t = translations[language];
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -330,8 +334,8 @@ export default function JobManagement() {
           }
         `}</style>
         <div className="spinner"></div>
-        <div className="loading-text">Loading Jobs</div>
-        <div className="loading-subtext">Fetching data from Firebase...</div>
+        <div className="loading-text">{t.loadingJobs || 'Loading Jobs'}</div>
+        <div className="loading-subtext">{t.fetchingData || 'Fetching data from Firebase...'}</div>
       </div>
     );
   }
@@ -1126,16 +1130,16 @@ export default function JobManagement() {
               <ArrowLeft style={{ color: 'white', width: 24, height: 24 }} />
             </button>
             <div className="header-title">
-              <h1>Job Management</h1>
+              <h1>{t.jobManagement || 'Job Management'}</h1>
               <div className="header-subtitle">
                 <Sparkles size={18} />
-                <span>Managing {filteredJobs.length} jobs with precision</span>
+                <span>{t.managingCountLabel?.replace('{{count}}', filteredJobs.length.toString()) || `Managing ${filteredJobs.length} jobs with precision`}</span>
               </div>
             </div>
           </div>
           <button className="create-btn" onClick={() => { resetForm(); setShowCreateModal(true); }}>
             <Plus size={24} />
-            Create Job
+            {t.createJob || 'Create Job'}
           </button>
         </div>
 
@@ -1144,7 +1148,7 @@ export default function JobManagement() {
             <Search style={{ color: '#667eea', width: 24, height: 24 }} />
             <input
               type="text"
-              placeholder="Search by job title, customer, or department..."
+              placeholder={t.searchJobsPlaceholder || "Search by job title, customer, or department..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -1162,38 +1166,38 @@ export default function JobManagement() {
             <Package style={{ color: 'white', width: 30, height: 30 }} />
           </div>
           <div className="stat-value">{stats.total}</div>
-          <div className="stat-label">Total Jobs</div>
+          <div className="stat-label">{t.totalJobs || 'Total Jobs'}</div>
         </div>
         <div className="stat-card animate-scale-in" style={{ animationDelay: '0.1s' }}>
           <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #ffd54f 0%, #ffb300 100%)' }}>
             <Clock style={{ color: 'white', width: 30, height: 30 }} />
           </div>
           <div className="stat-value">{stats.pending}</div>
-          <div className="stat-label">Pending</div>
+          <div className="stat-label">{t.pending || 'Pending'}</div>
         </div>
         <div className="stat-card animate-scale-in" style={{ animationDelay: '0.2s' }}>
           <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%)' }}>
             <TrendingUp style={{ color: 'white', width: 30, height: 30 }} />
           </div>
           <div className="stat-value">{stats.inProgress}</div>
-          <div className="stat-label">In Progress</div>
+          <div className="stat-label">{t.inProgress || 'In Progress'}</div>
         </div>
         <div className="stat-card animate-scale-in" style={{ animationDelay: '0.3s' }}>
           <div className="stat-icon" style={{ background: 'linear-gradient(135deg, #66bb6a 0%, #43a047 100%)' }}>
             <CheckCircle style={{ color: 'white', width: 30, height: 30 }} />
           </div>
           <div className="stat-value">{stats.completed}</div>
-          <div className="stat-label">Completed</div>
+          <div className="stat-label">{t.completed || 'Completed'}</div>
         </div>
       </div>
 
       {/* Filter Tabs */}
       <div className="filter-tabs">
         {[
-          { key: 'all', label: `All Jobs (${stats.total})` },
-          { key: 'pending', label: `Pending (${stats.pending})` },
-          { key: 'in-progress', label: `In Progress (${stats.inProgress})` },
-          { key: 'completed', label: `Completed (${stats.completed})` }
+          { key: 'all', label: (t.allJobs || 'All Jobs ({{count}})').replace('{{count}}', stats.total.toString()) },
+          { key: 'pending', label: (t.pendingJobs || 'Pending ({{count}})').replace('{{count}}', stats.pending.toString()) },
+          { key: 'in-progress', label: (t.inProgressJobs || 'In Progress ({{count}})').replace('{{count}}', stats.inProgress.toString()) },
+          { key: 'completed', label: (t.completedJobs || 'Completed ({{count}})').replace('{{count}}', stats.completed.toString()) }
         ].map((filter) => (
           <button
             key={filter.key}
@@ -1210,14 +1214,14 @@ export default function JobManagement() {
         {filteredJobs.length === 0 ? (
           <div className="empty-state animate-scale-in">
             <div className="empty-icon">📋</div>
-            <h3 className="empty-title">No Jobs Found</h3>
+            <h3 className="empty-title">{t.noJobsFound || 'No Jobs Found'}</h3>
             <p className="empty-subtitle">
-              {searchQuery ? 'Try adjusting your search criteria' : 'Create your first job to get started'}
+              {searchQuery ? (t.adjustSearch || 'Try adjusting your search criteria') : (t.createFirstJob || 'Create your first job to get started')}
             </p>
             {!searchQuery && (
               <button className="empty-btn" onClick={() => { resetForm(); setShowCreateModal(true); }}>
                 <Plus size={24} />
-                Create Your First Job
+                {t.createYourFirstJob || 'Create Your First Job'}
               </button>
             )}
           </div>
@@ -1249,7 +1253,7 @@ export default function JobManagement() {
                       <User style={{ color: '#8e24aa', width: 20, height: 20 }} />
                     </div>
                     <div className="detail-content">
-                      <div className="detail-label">Customer</div>
+                      <div className="detail-label">{t.customer}</div>
                       <div className="detail-value">{job.customer ?? '—'}</div>
                     </div>
                   </div>
@@ -1259,8 +1263,8 @@ export default function JobManagement() {
                       <Package style={{ color: '#0277bd', width: 20, height: 20 }} />
                     </div>
                     <div className="detail-content">
-                      <div className="detail-label">Quantity</div>
-                      <div className="detail-value">{(job.quantity ?? 0).toLocaleString()} units</div>
+                      <div className="detail-label">{t.quantity}</div>
+                      <div className="detail-value">{(job.quantity ?? 0).toLocaleString()} {t.units || 'units'}</div>
                     </div>
                   </div>
 
@@ -1278,11 +1282,11 @@ export default function JobManagement() {
                 <div className="job-actions">
                   <button className="action-btn btn-view" onClick={() => openDetailsModal(job)}>
                     <Eye size={18} />
-                    View
+                    {t.view}
                   </button>
                   <button className="action-btn btn-edit" onClick={() => openEditModal(job)}>
                     <Edit size={18} />
-                    Edit
+                    {t.edit}
                   </button>
                   <button className="action-btn btn-delete" onClick={() => handleDeleteJob(job)}>
                     <Trash2 size={18} />
@@ -1301,10 +1305,10 @@ export default function JobManagement() {
             <div className="modal-header">
               <div className="modal-header-content">
                 <div>
-                  <h2 className="modal-title">{showCreateModal ? 'Create New Job' : 'Edit Job'}</h2>
+                  <h2 className="modal-title">{showCreateModal ? (t.createNewJob || 'Create New Job') : (t.editJob || 'Edit Job')}</h2>
                   <p className="modal-subtitle">
                     <Zap size={16} />
-                    <span>{showCreateModal ? 'Fill in the details to create a new job' : 'Update job information'}</span>
+                    <span>{showCreateModal ? (t.jobDetailsInstructions || 'Fill in the details to create a new job') : (t.updateJobInfo || 'Update job information')}</span>
                   </p>
                 </div>
                 <button className="close-btn" onClick={() => { showCreateModal ? setShowCreateModal(false) : setShowEditModal(false); resetForm(); }}>
@@ -1317,7 +1321,7 @@ export default function JobManagement() {
               <div className="form-group">
                 <label className="form-label">
                   <FileText size={16} style={{ color: '#667eea' }} />
-                  Job Title *
+                  {t.shiftName || 'Job Title'} *
                 </label>
                 <input
                   type="text"
@@ -1338,12 +1342,12 @@ export default function JobManagement() {
                 <div className="form-group">
                   <label className="form-label">
                     <User size={16} style={{ color: '#667eea' }} />
-                    Customer *
+                    {t.customer} *
                   </label>
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="Customer name"
+                    placeholder={t.customer}
                     value={formData.customer}
                     onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
                   />
@@ -1358,7 +1362,7 @@ export default function JobManagement() {
                 <div className="form-group">
                   <label className="form-label">
                     <Package size={16} style={{ color: '#667eea' }} />
-                    Quantity *
+                    {t.quantity} *
                   </label>
                   <input
                     type="number"
@@ -1378,7 +1382,7 @@ export default function JobManagement() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Priority Level</label>
+                <label className="form-label">{t.priority}</label>
                 <div className="priority-grid">
                   {(['low', 'medium', 'high', 'urgent'] as const).map((priority) => (
                     <button
@@ -1391,7 +1395,7 @@ export default function JobManagement() {
                       onClick={() => setFormData({ ...formData, priority })}
                     >
                       <span>{priorityConfig[priority].icon}</span>
-                      {priority}
+                      {t[priority] || priority}
                     </button>
                   ))}
                 </div>
@@ -1399,7 +1403,7 @@ export default function JobManagement() {
 
               {showEditModal && (
                 <div className="form-group">
-                  <label className="form-label">Job Status</label>
+                  <label className="form-label">{t.jobStatus || 'Job Status'}</label>
                   <div className="status-grid">
                     {(['pending', 'in-progress', 'qc-review', 'completed'] as const).map((status) => (
                       <button
@@ -1412,7 +1416,7 @@ export default function JobManagement() {
                         onClick={() => setFormData({ ...formData, status })}
                       >
                         <span>{statusConfig[status].icon}</span>
-                        {status.replace('-', ' ').toUpperCase()}
+                        {t[status] || status.replace('-', ' ').toUpperCase()}
                       </button>
                     ))}
                   </div>
@@ -1421,7 +1425,7 @@ export default function JobManagement() {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Department *</label>
+                  <label className="form-label">{t.department} *</label>
                   <input
                     type="text"
                     className="form-input"
@@ -1440,7 +1444,7 @@ export default function JobManagement() {
                 <div className="form-group">
                   <label className="form-label">
                     <Calendar size={16} style={{ color: '#667eea' }} />
-                    Due Date *
+                    {t.dueDate} *
                   </label>
                   <input
                     type="date"
@@ -1460,7 +1464,7 @@ export default function JobManagement() {
               <div className="form-group">
                 <label className="form-label">
                   <User size={16} style={{ color: '#667eea' }} />
-                  Assign to Staff (Optional)
+                  {t.assignedStaffOptional || 'Assign to Staff (Optional)'}
                 </label>
                 <select
                   className="form-input"
@@ -1468,7 +1472,7 @@ export default function JobManagement() {
                   value={formData.assignedStaff}
                   onChange={(e) => setFormData({ ...formData, assignedStaff: e.target.value })}
                 >
-                  <option value="">-- Unassigned --</option>
+                  <option value="">-- {t.unassigned || 'Unassigned'} --</option>
                   {staffList.filter(s => s.status === 'active').map(s => (
                     <option key={s.id} value={s.name}>{s.name}</option>
                   ))}
@@ -1476,11 +1480,11 @@ export default function JobManagement() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Description (Optional)</label>
+                <label className="form-label">{t.descriptionOptional || 'Description (Optional)'}</label>
                 <textarea
                   className="form-input"
                   rows={4}
-                  placeholder="Add detailed job description, special requirements, or notes..."
+                  placeholder={t.jobDescriptionPlaceholder || "Add detailed job description, special requirements, or notes..."}
                   style={{ resize: 'vertical' }}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -1504,12 +1508,12 @@ export default function JobManagement() {
                 {submitting ? (
                   <>
                     <Loader size={20} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
-                    {showCreateModal ? 'Creating...' : 'Updating...'}
+                    {showCreateModal ? (t.creating || 'Creating...') : (t.saving || 'Updating...')}
                   </>
                 ) : (
                   <>
                     {showCreateModal ? <Plus size={20} /> : <Edit size={20} />}
-                    {showCreateModal ? 'Create Job' : 'Update Job'}
+                    {showCreateModal ? (t.createJob || 'Create Job') : (t.update || 'Update Job')}
                   </>
                 )}
               </button>
@@ -1525,8 +1529,8 @@ export default function JobManagement() {
             <div className="modal-header">
               <div className="modal-header-content">
                 <div>
-                  <h2 className="modal-title">Job Details</h2>
-                  <p className="modal-subtitle">Complete job information</p>
+                  <h2 className="modal-title">{t.jobDetails || 'Job Details'}</h2>
+                  <p className="modal-subtitle">{t.completeJobInfo || 'Complete job information'}</p>
                 </div>
                 <button className="close-btn" onClick={() => setShowDetailsModal(false)}>
                   <X style={{ color: 'white', width: 24, height: 24 }} />
@@ -1537,7 +1541,7 @@ export default function JobManagement() {
             <div className="modal-body">
               <div className="form-group">
                 <div className="glass-effect" style={{ borderRadius: 16, padding: 24, boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)' }}>
-                  <p className="detail-label" style={{ fontSize: 14 }}>Job Title</p>
+                  <p className="detail-label" style={{ fontSize: 14 }}>{t.shiftName || 'Job Title'}</p>
                   <h3 style={{ fontSize: 28, fontWeight: 900, color: '#1a1a1a', marginTop: 8 }}>{viewingJob.title}</h3>
                 </div>
               </div>
@@ -1545,20 +1549,20 @@ export default function JobManagement() {
               <div className="form-row">
                 <div className="form-group">
                   <div className="glass-effect" style={{ borderRadius: 16, padding: 24, boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)' }}>
-                    <p className="detail-label" style={{ fontSize: 14, marginBottom: 12 }}>Priority</p>
+                    <p className="detail-label" style={{ fontSize: 14, marginBottom: 12 }}>{t.priority || 'Priority'}</p>
                     <div className={`badge bg-gradient-to-r ${(priorityConfig[viewingJob.priority] ?? priorityConfig['medium']).bg} ${(priorityConfig[viewingJob.priority] ?? priorityConfig['medium']).text}`} style={{ justifyContent: 'center', fontSize: 14 }}>
                       <span style={{ fontSize: 24 }}>{(priorityConfig[viewingJob.priority] ?? priorityConfig['medium']).icon}</span>
-                      {viewingJob.priority ?? 'medium'}
+                      {t[viewingJob.priority] || viewingJob.priority || 'medium'}
                     </div>
                   </div>
                 </div>
 
                 <div className="form-group">
                   <div className="glass-effect" style={{ borderRadius: 16, padding: 24, boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)' }}>
-                    <p className="detail-label" style={{ fontSize: 14, marginBottom: 12 }}>Status</p>
+                    <p className="detail-label" style={{ fontSize: 14, marginBottom: 12 }}>{t.status || 'Status'}</p>
                     <div className={`badge bg-gradient-to-r ${(statusConfig[viewingJob.status] ?? statusConfig['pending']).bg} ${(statusConfig[viewingJob.status] ?? statusConfig['pending']).text}`} style={{ justifyContent: 'center', fontSize: 14 }}>
                       <span style={{ fontSize: 24 }}>{(statusConfig[viewingJob.status] ?? statusConfig['pending']).icon}</span>
-                      {(viewingJob.status ?? 'pending').replace('-', ' ')}
+                      {t[viewingJob.status] || (viewingJob.status ?? 'pending').replace('-', ' ')}
                     </div>
                   </div>
                 </div>
@@ -1572,7 +1576,7 @@ export default function JobManagement() {
                         <User style={{ color: '#8e24aa', width: 24, height: 24 }} />
                       </div>
                       <div>
-                        <p className="detail-label">Customer</p>
+                        <p className="detail-label">{t.customer}</p>
                         <p className="detail-value" style={{ fontSize: 18 }}>{viewingJob.customer}</p>
                       </div>
                     </div>
@@ -1586,8 +1590,8 @@ export default function JobManagement() {
                         <Package style={{ color: '#0277bd', width: 24, height: 24 }} />
                       </div>
                       <div>
-                        <p className="detail-label">Quantity</p>
-                        <p className="detail-value" style={{ fontSize: 18 }}>{(viewingJob.quantity ?? 0).toLocaleString()} units</p>
+                        <p className="detail-label">{t.quantity}</p>
+                        <p className="detail-value" style={{ fontSize: 18 }}>{(viewingJob.quantity ?? 0).toLocaleString()} {t.units || 'units'}</p>
                       </div>
                     </div>
                   </div>
@@ -1602,7 +1606,7 @@ export default function JobManagement() {
                         <Calendar style={{ color: '#2e7d32', width: 24, height: 24 }} />
                       </div>
                       <div>
-                        <p className="detail-label">Due Date</p>
+                        <p className="detail-label">{t.dueDate}</p>
                         <p className="detail-value" style={{ fontSize: 18 }}>{viewingJob.dueDate}</p>
                       </div>
                     </div>
@@ -1616,7 +1620,7 @@ export default function JobManagement() {
                         <Zap style={{ color: '#f57f17', width: 24, height: 24 }} />
                       </div>
                       <div>
-                        <p className="detail-label">Department</p>
+                        <p className="detail-label">{t.department}</p>
                         <p className="detail-value" style={{ fontSize: 18 }}>{viewingJob.department}</p>
                       </div>
                     </div>
@@ -1627,7 +1631,7 @@ export default function JobManagement() {
               {viewingJob.description && (
                 <div className="form-group">
                   <div className="glass-effect" style={{ borderRadius: 16, padding: 24, boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)' }}>
-                    <p className="detail-label" style={{ fontSize: 14, marginBottom: 12 }}>Description</p>
+                    <p className="detail-label" style={{ fontSize: 14, marginBottom: 12 }}>{t.description || 'Description'}</p>
                     <p style={{ color: '#555', lineHeight: 1.6 }}>{viewingJob.description}</p>
                   </div>
                 </div>
@@ -1635,14 +1639,14 @@ export default function JobManagement() {
 
               <div className="form-group">
                 <div className="glass-effect" style={{ borderRadius: 16, padding: 24, boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)' }}>
-                  <p className="detail-label" style={{ fontSize: 14, marginBottom: 12 }}>Additional Information</p>
+                  <p className="detail-label" style={{ fontSize: 14, marginBottom: 12 }}>{t.additionalInfo || 'Additional Information'}</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: '#666', fontWeight: 600 }}>Job ID:</span>
+                      <span style={{ color: '#666', fontWeight: 600 }}>{t.jobIdLabel || 'Job ID'}:</span>
                       <span style={{ color: '#1a1a1a', fontWeight: 700 }}>#{viewingJob.id.slice(0, 8)}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: '#666', fontWeight: 600 }}>Created By:</span>
+                      <span style={{ color: '#666', fontWeight: 600 }}>{t.createdByLabel || 'Created By'}:</span>
                       <span style={{ color: '#1a1a1a', fontWeight: 700 }}>{viewingJob.createdBy}</span>
                     </div>
                   </div>
@@ -1657,13 +1661,13 @@ export default function JobManagement() {
                 onClick={() => { setShowDetailsModal(false); openEditModal(viewingJob); }}
               >
                 <Edit size={24} />
-                Edit Job
+                {t.editJob || 'Edit Job'}
               </button>
               <button
                 className="modal-btn modal-btn-cancel"
                 onClick={() => setShowDetailsModal(false)}
               >
-                Close
+                {t.close || 'Close'}
               </button>
             </div>
           </div>

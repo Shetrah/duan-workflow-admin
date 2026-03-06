@@ -4,6 +4,8 @@ import { collection, onSnapshot, query, where, orderBy } from "firebase/firestor
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebaseConfig";
 import logoImg from "../../assets/images/logo-1.png";
+import { useLanguage } from "../contexts/LanguageContext";
+import { translations } from "../translations";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -110,6 +112,8 @@ const statusLabels: Record<string, string> = {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { lang } = useLanguage();
+  const t = translations[lang];
   const [user, setUser] = useState<User | null>(null);
 
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -250,7 +254,9 @@ const Dashboard: React.FC = () => {
       }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "20px" }}>
           <div className="loader" />
-          <p style={{ color: "#fff", fontSize: "18px", fontWeight: 500 }}>Loading Dashboard…</p>
+          <p style={{ color: "#fff", fontSize: "18px", fontWeight: 500 }}>
+            {lang === 'zh' ? '正在加载仪表板...' : 'Loading Dashboard...'}
+          </p>
         </div>
       </div>
     );
@@ -394,19 +400,19 @@ const Dashboard: React.FC = () => {
         </div>
         <nav>
           <a className={activeNav === "dashboard" ? "active" : ""} onClick={() => setActiveNav("dashboard")} style={{ cursor: "pointer" }}>
-            <span className="nav-icon">📊</span> Dashboard
+            <span className="nav-icon">📊</span> {t.dashboard}
           </a>
           <a className={activeNav === "staff" ? "active" : ""} onClick={() => { setActiveNav("staff"); navigate("/staff"); }} style={{ cursor: "pointer" }}>
-            <span className="nav-icon">👥</span> Staff Management
+            <span className="nav-icon">👥</span> {t.staffManagement}
           </a>
           <a className={activeNav === "shifts" ? "active" : ""} onClick={() => { setActiveNav("shifts"); navigate("/shifts"); }} style={{ cursor: "pointer" }}>
-            <span className="nav-icon">🕐</span> Shifts
+            <span className="nav-icon">🕐</span> {t.shifts}
           </a>
           <a className={activeNav === "scheduling" ? "active" : ""} onClick={() => { setActiveNav("scheduling"); navigate("/assignments"); }} style={{ cursor: "pointer" }}>
-            <span className="nav-icon">📅</span> Assignments
+            <span className="nav-icon">📅</span> {t.assignments}
           </a>
           <a onClick={async () => { await signOut(auth); localStorage.clear(); navigate("/login"); }} style={{ cursor: "pointer", marginTop: "20px", color: "#ef4444" }}>
-            <span className="nav-icon">🚪</span> Logout
+            <span className="nav-icon">🚪</span> {t.logout}
           </a>
         </nav>
       </aside>
@@ -417,25 +423,25 @@ const Dashboard: React.FC = () => {
         {/* Topbar */}
         <header className="topbar">
           <div className="topbar-left">
-            <h1>Admin Dashboard</h1>
-            <p>Welcome back! Here's what's happening today.</p>
+            <h1>{t.adminDashboard}</h1>
+            <p>{t.welcomeBack}</p>
           </div>
           <div className="top-actions">
             <div className="user-profile">
               <div className="user-avatar">{user?.email?.charAt(0).toUpperCase() || "A"}</div>
               <div>
                 <div className="user-name">{user?.email?.split("@")[0] || "Admin"}</div>
-                <div className="user-role">Administrator</div>
+                <div className="user-role">{t.administrator}</div>
               </div>
             </div>
             <button className="btn ghost">
-              <span>📥</span> Export
+              <span>📥</span> {t.export}
             </button>
             <button className="btn primary" onClick={() => navigate("/assignments")}>
-              <span>➕</span> New Assignment
+              <span>➕</span> {t.newAssignment}
             </button>
             <button className="btn ghost" onClick={async () => { await signOut(auth); localStorage.clear(); navigate("/login"); }} style={{ color: "#ef4444" }}>
-              <span>🚪</span> Logout
+              <span>🚪</span> {t.logout}
             </button>
           </div>
         </header>
@@ -445,9 +451,9 @@ const Dashboard: React.FC = () => {
           <div className="card stat blue">
             <div className="stat-header">
               <div>
-                <h3>Total Staff</h3>
+                <h3>{t.totalStaff}</h3>
                 <p>{totalStaff}</p>
-                <span>Active employees</span>
+                <span>{t.activeEmployees}</span>
               </div>
               <div className="stat-icon">👥</div>
             </div>
@@ -456,9 +462,9 @@ const Dashboard: React.FC = () => {
           <div className="card stat green">
             <div className="stat-header">
               <div>
-                <h3>Active Shifts</h3>
+                <h3>{t.activeShifts}</h3>
                 <p>{activeShiftsCount}</p>
-                <span>From Firestore shifts</span>
+                <span>{t.fromFirestore}</span>
               </div>
               <div className="stat-icon">🕐</div>
             </div>
@@ -467,9 +473,9 @@ const Dashboard: React.FC = () => {
           <div className="card stat purple">
             <div className="stat-header">
               <div>
-                <h3>This Week</h3>
+                <h3>{t.thisWeek}</h3>
                 <p>{weeklyAssignments}</p>
-                <span>Assignments</span>
+                <span>{t.assignments}</span>
               </div>
               <div className="stat-icon">📋</div>
             </div>
@@ -478,9 +484,9 @@ const Dashboard: React.FC = () => {
           <div className="card stat orange">
             <div className="stat-header">
               <div>
-                <h3>Departments</h3>
+                <h3>{t.departments}</h3>
                 <p>{departments}</p>
-                <span>Operational units</span>
+                <span>{t.operationalUnits}</span>
               </div>
               <div className="stat-icon">🏢</div>
             </div>
@@ -492,14 +498,14 @@ const Dashboard: React.FC = () => {
 
           {/* Recent Staff Assignments */}
           <div className="card table-card">
-            <h2>Recent Staff Assignments</h2>
+            <h2>{t.recentAssignments}</h2>
             <table>
               <thead>
                 <tr>
-                  <th>Staff Member</th>
-                  <th>Job Title</th>
-                  <th>Department</th>
-                  <th>Date</th>
+                  <th>{t.staffMember}</th>
+                  <th>{t.jobTitle}</th>
+                  <th>{t.department}</th>
+                  <th>{t.date}</th>
                 </tr>
               </thead>
               <tbody>
@@ -508,7 +514,7 @@ const Dashboard: React.FC = () => {
                     <td colSpan={4}>
                       <div className="empty-state">
                         <div className="empty-state-icon">📭</div>
-                        <div>No assignments yet</div>
+                        <div>{t.noAssignments}</div>
                       </div>
                     </td>
                   </tr>
@@ -532,17 +538,17 @@ const Dashboard: React.FC = () => {
 
           {/* Shift Schedule (live from Firestore) */}
           <div className="card shifts-card">
-            <h2>Shift Schedule</h2>
+            <h2>{t.shiftSchedule}</h2>
 
             {shifts.length === 0 ? (
               <div className="shift-empty">
                 <div style={{ fontSize: 40, marginBottom: 8 }}>🕐</div>
-                No shifts configured yet.<br />
+                {t.noShifts}<br />
                 <span
                   style={{ color: "#667eea", cursor: "pointer", fontWeight: 600 }}
                   onClick={() => navigate("/shifts")}
                 >
-                  Add shifts →
+                  {t.addShifts}
                 </span>
               </div>
             ) : (
@@ -554,7 +560,7 @@ const Dashboard: React.FC = () => {
                     <small>{fmt12(s.startTime)} – {fmt12(s.endTime)}{s.department ? ` · ${s.department}` : ""}</small>
                     {s.maxStaff ? (
                       <small style={{ marginTop: 2 }}>
-                        {s.assignedStaff ?? 0} / {s.maxStaff} staff
+                        {t.staffCount.replace('{{count}}', String(s.assignedStaff ?? 0)).replace('{{max}}', String(s.maxStaff))}
                       </small>
                     ) : null}
                   </div>
@@ -562,7 +568,7 @@ const Dashboard: React.FC = () => {
                     className="shift-badge"
                     style={{ background: s.isActive ? "#10b981" : "#94a3b8" }}
                   >
-                    {s.isActive ? "Active" : "Off"}
+                    {s.isActive ? t.active : t.off}
                   </span>
                 </div>
               ))
@@ -570,7 +576,7 @@ const Dashboard: React.FC = () => {
 
             {/* Current shift chip */}
             <div className="current-shift-chip">
-              <div className="current-shift-label">CURRENT SHIFT</div>
+              <div className="current-shift-label">{t.currentShift}</div>
               {(() => {
                 const now = new Date();
                 const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -592,7 +598,7 @@ const Dashboard: React.FC = () => {
                 }
                 return (
                   <div className="current-shift-value" style={{ fontSize: '14px', color: '#94a3b8' }}>
-                    No active shift detected
+                    {t.noActiveShift}
                   </div>
                 );
               })()}
@@ -603,10 +609,10 @@ const Dashboard: React.FC = () => {
         {/* ── JOB STATS ROW ── */}
         <div className="job-stats-row">
           {[
-            { label: "Total Jobs", value: jobStats.total, icon: "📦", bg: "#667eea22", color: "#667eea" },
-            { label: "Pending", value: jobStats.pending, icon: "⏳", bg: "#f59e0b22", color: "#f59e0b" },
-            { label: "In Progress", value: jobStats.inProgress, icon: "🚀", bg: "#3b82f622", color: "#3b82f6" },
-            { label: "Completed", value: jobStats.completed, icon: "✅", bg: "#10b98122", color: "#10b981" },
+            { label: t.totalJobs, value: jobStats.total, icon: "📦", bg: "#667eea22", color: "#667eea" },
+            { label: t.pending, value: jobStats.pending, icon: "⏳", bg: "#f59e0b22", color: "#f59e0b" },
+            { label: t.inProgress, value: jobStats.inProgress, icon: "🚀", bg: "#3b82f622", color: "#3b82f6" },
+            { label: t.completed, value: jobStats.completed, icon: "✅", bg: "#10b98122", color: "#10b981" },
           ].map((stat) => (
             <div className="job-stat-card" key={stat.label} onClick={() => navigate("/assignments")} style={{ cursor: "pointer" }}>
               <div className="job-stat-icon" style={{ background: stat.bg }}>
