@@ -75,6 +75,25 @@ export default function JobManagement() {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
+  // =====================================
+  // Auth Guard
+  // =====================================
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        navigate('/login');
+      }
+    });
+
+    // Check localStorage as well for immediate protection
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) {
+      navigate('/login');
+    }
+
+    return () => unsubscribe();
+  }, [navigate]);
+
   // Firebase real-time listener
   useEffect(() => {
     const jobsQuery = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));

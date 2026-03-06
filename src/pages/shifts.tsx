@@ -139,6 +139,25 @@ export default function ShiftScheduling() {
   ];
 
   // ============================================================================
+  // AUTH GUARD
+  // ============================================================================
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        navigate('/login');
+      }
+    });
+
+    // Check localStorage as well for immediate protection
+    const adminToken = localStorage.getItem('adminToken');
+    if (!adminToken) {
+      navigate('/login');
+    }
+
+    return () => unsubscribe();
+  }, [navigate]);
+
+  // ============================================================================
   // FIREBASE LISTENERS
   // ============================================================================
   useEffect(() => {
