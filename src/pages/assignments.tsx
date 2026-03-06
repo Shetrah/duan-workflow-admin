@@ -50,8 +50,8 @@ interface FormData {
 
 export default function JobManagement() {
   const navigate = useNavigate();
-  const { language } = useLanguage();
-  const t = translations[language];
+  const { lang } = useLanguage();
+  const t = translations[lang];
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -88,12 +88,6 @@ export default function JobManagement() {
         navigate('/login');
       }
     });
-
-    // Check localStorage as well for immediate protection
-    const adminToken = localStorage.getItem('adminToken');
-    if (!adminToken) {
-      navigate('/login');
-    }
 
     return () => unsubscribe();
   }, [navigate]);

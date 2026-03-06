@@ -4,11 +4,12 @@ import {
   sendPasswordResetEmail,
   signOut,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../firebaseConfig";
+import { auth } from "../../firebaseConfig";
 import { useLanguage } from "../contexts/LanguageContext";
 import { translations } from "../translations";
+import companyLogo from "../../assets/images/logo-1.png";
+import { getAdminAccess } from "../auth/adminAccess";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +26,39 @@ const Login: React.FC = () => {
     setFadeIn(true);
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      void (async () => {
+        try {
+          const access = await getAdminAccess(user);
+
+          if (!isMounted) {
+            return;
+          }
+
+          if (!access.allowed || !user) {
+            localStorage.removeItem("adminToken");
+            localStorage.removeItem("adminRole");
+            return;
+          }
+
+          localStorage.setItem("adminToken", user.uid);
+          localStorage.setItem("adminRole", "admin");
+          navigate("/dashboard");
+        } catch (error) {
+          console.error("login access bootstrap failed:", error);
+        }
+      })();
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, [navigate]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -37,19 +71,21 @@ const Login: React.FC = () => {
       );
 
       const user = userCredential.user;
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
+      const access = await getAdminAccess(user);
 
-      if (!userSnap.exists()) {
+      if (!access.allowed) {
         await signOut(auth);
-        throw new Error(t.userNotFound);
-      }
 
-      const userData = userSnap.data();
-      const userRole = userData.role?.toLowerCase();
+        if (access.reason === "missing-user-doc") {
+          throw new Error(
+            `${t.userNotFound} Expected users/${user.uid} with role "Admin" and isActive true.`
+          );
+        }
 
-      if (userRole !== "admin") {
-        await signOut(auth);
+        if (access.reason === "inactive-user") {
+          throw new Error(`${t.accessDenied} Your admin account is inactive.`);
+        }
+
         throw new Error(t.accessDenied);
       }
 
@@ -253,7 +289,7 @@ const Login: React.FC = () => {
         loop
         playsInline
       >
-        <source src="/assets/videos/video-1.mp4" type="video/mp4" />
+        <source src="/videos/video-1.mp4" type="video/mp4" />
       </video>
 
       <div className="overlay" />
@@ -281,7 +317,7 @@ const Login: React.FC = () => {
           </div>
 
           <div className="logo">
-            <img src="/assets/images/logo-1.png" alt="Duan Labels Logo" />
+            <img src={companyLogo} alt="Duan Labels Logo" />
           </div>
 
           <h2>{t.title}</h2>

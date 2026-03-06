@@ -7,9 +7,7 @@ import Assignments from "./pages/assignments";
 import Departments from "./pages/departments";
 import Shifts from "./pages/shifts";
 import { LanguageProvider } from "./contexts/LanguageContext";
-
-// Simple auth check
-const isAuthenticated = () => !!localStorage.getItem("adminToken");
+import RequireAdmin from "./components/RequireAdmin";
 
 const App: React.FC = () => {
   return (
@@ -18,30 +16,57 @@ const App: React.FC = () => {
         <Routes>
           {/* Login page */}
           <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
 
           {/* Dashboard protected */}
           <Route
             path="/dashboard"
-            element={isAuthenticated() ? <Dashboard /> : <Navigate to="/" />}
+            element={
+              <RequireAdmin>
+                <Dashboard />
+              </RequireAdmin>
+            }
           />
 
           {/* Staff Management protected */}
           <Route
             path="/staff"
-            element={isAuthenticated() ? <Staff /> : <Navigate to="/" />}
+            element={
+              <RequireAdmin>
+                <Staff />
+              </RequireAdmin>
+            }
           />
 
           <Route
             path="/assignments"
-            element={isAuthenticated() ? <Assignments /> : <Navigate to="/" />}
+            element={
+              <RequireAdmin>
+                <Assignments />
+              </RequireAdmin>
+            }
           />
 
-          <Route path="/shifts" element={<Shifts />} />
+          <Route
+            path="/shifts"
+            element={
+              <RequireAdmin>
+                <Shifts />
+              </RequireAdmin>
+            }
+          />
 
-          <Route path="/departments" element={<Departments />} />
+          <Route
+            path="/departments"
+            element={
+              <RequireAdmin>
+                <Departments />
+              </RequireAdmin>
+            }
+          />
 
           {/* Fallback route */}
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </LanguageProvider>

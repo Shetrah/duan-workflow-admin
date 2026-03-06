@@ -6,17 +6,44 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isAdmin() {
+    function hasUserProfile() {
       return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function hasLowercaseAdminRole() {
+      return hasUserProfile() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.keys().hasAny(["role"]) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role is string &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role.lower() == "admin";
+    }
+
+    function hasUppercaseAdminRole() {
+      return hasUserProfile() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.keys().hasAny(["Role"]) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.Role is string &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.Role.lower() == "admin";
+    }
+
+    function isActiveUser() {
+      return hasUserProfile() &&
+        (
+          !get(/databases/$(database)/documents/users/$(request.auth.uid)).data.keys().hasAny(["isActive"]) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isActive == true
+        );
+    }
+
+    function isAdmin() {
+      return hasUserProfile() &&
+        (hasLowercaseAdminRole() || hasUppercaseAdminRole()) &&
+        isActiveUser();
     }
 
     /* =========================
        👤 USERS
     ========================== */
     match /users/{userId} {
-      allow read: if isSignedIn();
-      // Allow admins to manage user roles/data
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
       allow write: if isAdmin();
     }
 
@@ -67,6 +94,22 @@ service cloud.firestore {
     match /stats/{statId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
+    }
+
+    /* =========================
+       🏢 DEPARTMENTS
+    ========================== */
+    match /departments/{departmentId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    /* =========================
+       📦 RESOURCES
+    ========================== */
+    match /resources/{resourceId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
   }
 }

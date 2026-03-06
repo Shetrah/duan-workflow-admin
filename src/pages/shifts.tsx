@@ -152,12 +152,6 @@ export default function ShiftScheduling() {
       }
     });
 
-    // Check localStorage as well for immediate protection
-    const adminToken = localStorage.getItem('adminToken');
-    if (!adminToken) {
-      navigate('/login');
-    }
-
     return () => unsubscribe();
   }, [navigate]);
 
@@ -1734,7 +1728,7 @@ export default function ShiftScheduling() {
           <div className="header-content">
             <div className="header-top">
               <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <button className="btn btn-ghost" onClick={() => navigate(-1)} title="Back">
+                <button className="btn btn-ghost" onClick={() => navigate(-1)} title="Back" aria-label="Back">
                   <ArrowLeft size={18} />
                 </button>
                 <div className="header-title">
@@ -2216,10 +2210,11 @@ export default function ShiftScheduling() {
 
             <div className="modal-body">
               <div className="form-group">
-                <label className="form-label">
+                <label className="form-label" for="shift-name">
                   {t.shiftName} <span className="required">*</span>
                 </label>
                 <input
+                  id="shift-name"
                   type="text"
                   className={`form-input ${formErrors.name ? 'error' : ''}`}
                   placeholder="e.g., Morning Shift, Night Shift"
@@ -2254,11 +2249,13 @@ export default function ShiftScheduling() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">
+                  <label className="form-label" htmlFor="shift-end">
                     {t.endTime} <span className="required">*</span>
                   </label>
                   <input
+                    id="shift-end"
                     type="time"
+                    title={t.endTime}
                     className={`form-input ${formErrors.endTime ? 'error' : ''}`}
                     value={formData.endTime}
                     onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
@@ -2392,10 +2389,11 @@ export default function ShiftScheduling() {
 
             <div className="modal-body">
               <div className="form-group">
-                <label className="form-label">
+                <label className="form-label" htmlFor="assign-shift">
                   Select Shift <span className="required">*</span>
                 </label>
                 <select
+                  id="assign-shift"
                   className={`form-input ${formErrors.shiftId ? 'error' : ''}`}
                   value={assignmentFormData.shiftId}
                   onChange={(e) => setAssignmentFormData({ ...assignmentFormData, shiftId: e.target.value })}
@@ -2418,10 +2416,11 @@ export default function ShiftScheduling() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">
+                <label className="form-label" htmlFor="assign-staff">
                   Staff Member <span className="required">*</span>
                 </label>
                 <select
+                  id="assign-staff"
                   className={`form-input ${formErrors.staffName ? 'error' : ''}`}
                   value={assignmentFormData.staffDocId}
                   onChange={(e) => {
@@ -2520,11 +2519,13 @@ export default function ShiftScheduling() {
 
               <div className="form-grid">
                 <div className="form-group">
-                  <label className="form-label">
+                  <label className="form-label" htmlFor="assign-date">
                     {t.date} <span className="required">*</span>
                   </label>
                   <input
+                    id="assign-date"
                     type="date"
+                    title={t.date}
                     className={`form-input ${formErrors.date ? 'error' : ''}`}
                     value={assignmentFormData.date}
                     onChange={(e) => setAssignmentFormData({ ...assignmentFormData, date: e.target.value })}
@@ -2539,11 +2540,13 @@ export default function ShiftScheduling() {
 
                 {assignmentFormData.frequency !== 'single' && (
                   <div className="form-group fade-in">
-                    <label className="form-label">
+                    <label className="form-label" htmlFor="assign-end-date">
                       {t.endDate || 'End Date'} <span className="required">*</span>
                     </label>
                     <input
+                      id="assign-end-date"
                       type="date"
+                      title={t.endDate || 'End Date'}
                       className={`form-input ${formErrors.endDate ? 'error' : ''}`}
                       value={assignmentFormData.endDate}
                       onChange={(e) => setAssignmentFormData({ ...assignmentFormData, endDate: e.target.value })}
@@ -2699,10 +2702,13 @@ export default function ShiftScheduling() {
 
             <div className="modal-body">
               <div className="form-group">
-                <label className="form-label">
+                <label className="form-label" htmlFor="edit-assign-staff">
                   {t.staffMember} <span className="required">*</span>
                 </label>
                 <select
+                  id="edit-assign-staff"
+                  title={t.staffMember}
+                  aria-label={t.staffMember}
                   className="form-input"
                   value={staffList.find(s => s.staffId === editingAssignment.staffId)?.id || ''}
                   onChange={(e) => {
@@ -2725,9 +2731,11 @@ export default function ShiftScheduling() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">{t.date}</label>
+                <label className="form-label" htmlFor="edit-assign-date">{t.date}</label>
                 <input
+                  id="edit-assign-date"
                   type="date"
+                  title={t.date}
                   className="form-input"
                   value={editingAssignment.date}
                   onChange={(e) => setEditingAssignment({ ...editingAssignment, date: e.target.value })}
@@ -2735,8 +2743,11 @@ export default function ShiftScheduling() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">{t.status}</label>
+                <label className="form-label" htmlFor="edit-assign-status">{t.status}</label>
                 <select
+                  id="edit-assign-status"
+                  title={t.status}
+                  aria-label={t.status}
                   className="form-input"
                   value={editingAssignment.status}
                   onChange={(e) => setEditingAssignment({ ...editingAssignment, status: e.target.value as any })}
@@ -2748,8 +2759,9 @@ export default function ShiftScheduling() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">{t.notes || t.additionalNotes}</label>
+                <label className="form-label" htmlFor="edit-assign-notes">{t.notes || t.additionalNotes}</label>
                 <input
+                  id="edit-assign-notes"
                   type="text"
                   className="form-input"
                   value={editingAssignment.notes || ''}
@@ -2917,6 +2929,7 @@ export default function ShiftScheduling() {
                                 setShowEditAssignmentModal(true);
                               }}
                               title="Edit Assignment"
+                              aria-label="Edit Assignment"
                             >
                               <Edit size={18} />
                             </button>
@@ -2928,6 +2941,7 @@ export default function ShiftScheduling() {
                                 setShowAssignmentDeleteConfirm(true);
                               }}
                               title="Delete Assignment"
+                              aria-label="Delete Assignment"
                             >
                               <Trash2 size={18} />
                             </button>
