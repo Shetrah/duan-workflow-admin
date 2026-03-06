@@ -102,6 +102,9 @@ const Login: React.FC = () => {
           height: 100%;
           object-fit: cover;
           z-index: -3;
+          pointer-events: none;
+          user-select: none;
+          -webkit-user-drag: none;
         }
 
         .overlay {
@@ -253,6 +256,13 @@ const Login: React.FC = () => {
         muted
         loop
         playsInline
+        preload="auto"
+        controls={false}
+        disablePictureInPicture
+        controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+        draggable={false}
+        onContextMenu={(e) => e.preventDefault()}
+        aria-hidden="true"
       >
         <source src="/videos/video-1.mp4" type="video/mp4" />
       </video>
