@@ -4,12 +4,12 @@ import {
   sendPasswordResetEmail,
   signOut,
 } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../../firebaseConfig";
+import { auth, db } from "../../firebaseConfig";
 import { useLanguage } from "../contexts/LanguageContext";
 import { translations } from "../translations";
 import companyLogo from "../../assets/images/logo-1.png";
-import { getAdminAccess } from "../auth/adminAccess";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -26,39 +26,6 @@ const Login: React.FC = () => {
     setFadeIn(true);
   }, []);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      void (async () => {
-        try {
-          const access = await getAdminAccess(user);
-
-          if (!isMounted) {
-            return;
-          }
-
-          if (!access.allowed || !user) {
-            localStorage.removeItem("adminToken");
-            localStorage.removeItem("adminRole");
-            return;
-          }
-
-          localStorage.setItem("adminToken", user.uid);
-          localStorage.setItem("adminRole", "admin");
-          navigate("/dashboard");
-        } catch (error) {
-          console.error("login access bootstrap failed:", error);
-        }
-      })();
-    });
-
-    return () => {
-      isMounted = false;
-      unsubscribe();
-    };
-  }, [navigate]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -71,21 +38,19 @@ const Login: React.FC = () => {
       );
 
       const user = userCredential.user;
-      const access = await getAdminAccess(user);
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
 
-      if (!access.allowed) {
+      if (!userSnap.exists()) {
         await signOut(auth);
+        throw new Error(t.userNotFound);
+      }
 
-        if (access.reason === "missing-user-doc") {
-          throw new Error(
-            `${t.userNotFound} Expected users/${user.uid} with role "Admin" and isActive true.`
-          );
-        }
+      const userData = userSnap.data();
+      const userRole = userData.role?.toLowerCase();
 
-        if (access.reason === "inactive-user") {
-          throw new Error(`${t.accessDenied} Your admin account is inactive.`);
-        }
-
+      if (userRole !== "admin") {
+        await signOut(auth);
         throw new Error(t.accessDenied);
       }
 
